@@ -11,7 +11,7 @@ A full-stack project with a Laravel backend and React.js frontend.
 ## Clone the Repository
 
 
-git clone https://github.com/yourusername/yourrepository.git
+git clone https://github.com/Jrkusha5/Task_App
 cd yourrepository
 ## Directory Structure This project includes:
 
