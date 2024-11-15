@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('title'); // Required title
             $table->text('description')->nullable(); // Optional description
+            $table->string('status')->default('pending');
             $table->timestamps();
         });
     }

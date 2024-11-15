@@ -8,7 +8,7 @@ const TaskApp = () => {
   const [editingTask, setEditingTask] = useState(null);
   const [taskDescription, setTaskDescription] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [filter, setFilter] = useState("all");  // Filter state
+  const [filter, setFilter] = useState("all");
 
   useEffect(() => {
     axios.get("http://localhost:8000/api/todos")
@@ -36,10 +36,10 @@ const TaskApp = () => {
     axios.post("http://localhost:8000/api/todos", {
       title: newTask,
       description: taskDescription,
-      status: "pending"
+      status: "pending"  // New task starts as "pending"
     })
     .then(response => {
-      setTasks([...tasks, response.data.data]);
+      setTasks([response.data.data, ...tasks]); // Add new task at the top
       setNewTask("");
       setTaskDescription("");
     })
@@ -75,11 +75,13 @@ const TaskApp = () => {
 
   const toggleTaskStatus = (task) => {
     const newStatus = task.status === "completed" ? "pending" : "completed";
-    axios.put(`http://localhost:8000/api/todos/${task.id}`, { ...task, status: newStatus })
+    axios.put(`http://localhost:8000/api/todos/${task.id}`, { status: newStatus })
       .then(response => {
         setTasks(tasks.map(t => t.id === task.id ? response.data.data : t));
       })
-      .catch(error => console.error(error));
+      .catch(error => {
+        console.error('Error updating task status:', error);
+      });
   };
 
   const deleteTask = (id) => {
@@ -90,45 +92,31 @@ const TaskApp = () => {
       .catch(error => console.error(error));
   };
 
-  const filteredTasks = tasks.filter(task => {
-    if (filter === "completed") {
-      return task.status === "completed";
-    }
-    if (filter === "pending") {
-      return task.status === "pending";
-    }
-    return true; // For "all"
-  });
+  const filteredTasks = tasks
+    .filter(task => {
+      if (filter === "completed") {
+        return task.status === "completed";
+      }
+      if (filter === "pending") {
+        return task.status === "pending";
+      }
+      return true;
+    })
+    .reverse(); // Reverse the order to show latest tasks on top
 
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-black to-blue-900 overflow-hidden p-4">
-      {/* Background animation */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute h-96 w-96 bg-gradient-to-br from-white to-indigo-200 opacity-10 animate-spin rounded-full -top-10 -left-20"></div>
-        <div className="absolute h-96 w-96 bg-gradient-to-br from-white to-purple-200 opacity-10 animate-spin-slow rounded-full -bottom-10 -right-20"></div>
-      </div>
-
       <div className="relative z-10 container mx-auto p-8 text-white max-w-3xl">
         <h1 className="text-4xl md:text-5xl font-bold text-center mb-6">Task Management</h1>
 
-        {/* Filter Controls */}
         <div className="mb-6 flex justify-center gap-4">
-          <button
-            onClick={() => setFilter("all")}
-            className={`px-4 py-2 rounded-lg ${filter === "all" ? "bg-indigo-600 text-white" : "bg-white text-indigo-600"}`}
-          >
+          <button onClick={() => setFilter("all")} className={`px-4 py-2 rounded-lg ${filter === "all" ? "bg-indigo-600 text-white" : "bg-white text-indigo-600"}`}>
             All Tasks
           </button>
-          <button
-            onClick={() => setFilter("completed")}
-            className={`px-4 py-2 rounded-lg ${filter === "completed" ? "bg-indigo-600 text-white" : "bg-white text-indigo-600"}`}
-          >
+          <button onClick={() => setFilter("completed")} className={`px-4 py-2 rounded-lg ${filter === "completed" ? "bg-indigo-600 text-white" : "bg-white text-indigo-600"}`}>
             Completed
           </button>
-          <button
-            onClick={() => setFilter("pending")}
-            className={`px-4 py-2 rounded-lg ${filter === "pending" ? "bg-indigo-600 text-white" : "bg-white text-indigo-600"}`}
-          >
+          <button onClick={() => setFilter("pending")} className={`px-4 py-2 rounded-lg ${filter === "pending" ? "bg-indigo-600 text-white" : "bg-white text-indigo-600"}`}>
             Pending
           </button>
         </div>
@@ -170,16 +158,10 @@ const TaskApp = () => {
 
         <ul className="space-y-4">
           {filteredTasks.map((task) => (
-            <li
-              key={task.id}
-              className={`flex flex-col md:flex-row justify-start items-start p-6 bg-white text-gray-800 rounded-xl shadow-lg transform transition duration-300 hover:scale-105 hover:shadow-xl ${task.status === "completed" ? "border-l-4 border-green-500" : "border-l-4 border-yellow-500"}`}
-            >
+            <li key={task.id} className={`flex flex-col md:flex-row justify-start items-start p-6 bg-white text-gray-800 rounded-xl shadow-lg ${task.status === "completed" ? "border-l-4 border-green-500" : "border-l-4 border-yellow-500"}`}>
               <div className="flex items-center justify-between w-full mb-2 md:mb-0">
                 <div className="flex items-center">
-                  <button
-                    onClick={() => toggleTaskStatus(task)}
-                    className={`p-3 rounded-full ${task.status === "completed" ? "bg-green-100 text-green-500" : "bg-yellow-100 text-yellow-500"}`}
-                  >
+                  <button onClick={() => toggleTaskStatus(task)} className={`p-3 rounded-full ${task.status === "completed" ? "bg-green-100 text-green-500" : "bg-yellow-100 text-yellow-500"}`}>
                     <FaCheckCircle />
                   </button>
                   <div className="ml-4">
@@ -192,16 +174,10 @@ const TaskApp = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-4 mt-2 md:mt-0">
-                  <button
-                    onClick={() => editTask(task)}
-                    className="text-yellow-500 hover:text-yellow-600 p-2 transition duration-300"
-                  >
+                  <button onClick={() => editTask(task)} className="text-yellow-500 hover:text-yellow-600 p-2 transition duration-300">
                     <FaEdit size={18} />
                   </button>
-                  <button
-                    onClick={() => deleteTask(task.id)}
-                    className="text-red-500 hover:text-red-600 p-2 transition duration-300"
-                  >
+                  <button onClick={() => deleteTask(task.id)} className="text-red-500 hover:text-red-600 p-2 transition duration-300">
                     <FaTrash size={18} />
                   </button>
                 </div>
