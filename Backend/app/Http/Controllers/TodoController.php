@@ -26,7 +26,7 @@ class TodoController extends Controller
             return response()->json([
                 'message' => 'Validation Error',
                 'errors' => $validator->messages(),
-            ], 432);
+            ], 422);
         }
 
         $todo = Todo::create([
@@ -38,40 +38,31 @@ class TodoController extends Controller
         return response()->json([
             'message' => 'Task Created Successfully',
             'data' => new TodoResource($todo),
-        ], 200);
+        ], 201);
     }
 
-    public function show(Todo $todo)
-    {
-        return new TodoResource($todo);
-    }
-
-    public function update(Todo $todo, Request $request)
+    public function update(Request $request, Todo $todo)
     {
         $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-            'status' => 'in:pending,completed',
+            'title' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'status' => 'nullable|in:pending,completed',
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json([
                 'message' => 'Validation Error',
                 'errors' => $validator->messages(),
-            ], 432);
+            ], 422);
         }
-    
-        $todo->update([
-            'title' => $request->title,
-            'description' => $request->description,
-            'status' => $request->status ?? $todo->status,  // Only update if a new status is provided
-        ]);
-    
+
+        $todo->update($request->all());
+
         return response()->json([
             'message' => 'Task Updated Successfully',
             'data' => new TodoResource($todo),
         ], 200);
     }
-    
 
     public function destroy(Todo $todo)
     {
